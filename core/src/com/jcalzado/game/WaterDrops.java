@@ -8,6 +8,7 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
@@ -28,6 +29,8 @@ public class WaterDrops extends ApplicationAdapter {
 	private Rectangle cubo;
     private Array<Rectangle> gotasLluvia;
     private long tiempoUltimaGota;
+    private BitmapFont textoPuntuacion;
+    private int contadorPuntos;
 	
 	@Override
 	public void create () {
@@ -53,7 +56,7 @@ public class WaterDrops extends ApplicationAdapter {
 		// Creación e inicialización el rectángulo del Cubo.
 		cubo = new Rectangle();
 		cubo.x = 800/2 - 64/2; // Centramos el centro del Cubo (64/2) en el centro de la pantalla.
-		cubo.y = 20; // Situamos el Cubo un poco arriba del suelo.
+		cubo.y = 0;
 		cubo.width = 64;
 		cubo.height = 64;
 
@@ -62,6 +65,12 @@ public class WaterDrops extends ApplicationAdapter {
 
         // Lanzamiento de la primera Gota.
         lanzarGota();
+
+        // Creación de la fuente para mostrar la puntuación.
+        textoPuntuacion = new BitmapFont();
+
+        // Inicialización del contador de puntos
+        contadorPuntos = 0;
     }
 
 	@Override
@@ -85,14 +94,17 @@ public class WaterDrops extends ApplicationAdapter {
         for (Rectangle gota: gotasLluvia) {
             batch.draw(imagenGota, gota.x, gota.y);
         }
+        // Renderizado de la puntuación.
+        textoPuntuacion.draw(batch, "PUNTUACIÓN: " + contadorPuntos, 24, Gdx.graphics.getHeight()-24);
 		batch.end(); // FIN DEL RENDERIZADO.
 
         // Captura de la entrada (Táctil o Ratón) del jugador para mover el Cubo.
         if (Gdx.input.isTouched()) {
             Vector3 posicionTocada = new Vector3();
-            posicionTocada.set(Gdx.input.getX(), Gdx.input.getX(), 0);
+            posicionTocada.set(Gdx.input.getX(), Gdx.input.getY(), 0);
             camara.unproject(posicionTocada);
             cubo.x = posicionTocada.x - 64/2;
+            cubo.y = posicionTocada.y - 64/2;
         }
 
         // Captura de la entrada (Teclado) del jugador para mover el Cubo.
@@ -102,10 +114,18 @@ public class WaterDrops extends ApplicationAdapter {
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
             cubo.x += 200 * Gdx.graphics.getDeltaTime();
         }
+        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
+            cubo.y += 200 * Gdx.graphics.getDeltaTime();
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+            cubo.y -= 200 * Gdx.graphics.getDeltaTime();
+        }
 
-        // Delimitación de movimiento del cubo a izquierda y derecha.
+        // Delimitación de movimiento del cubo en base a los bordes de la pantalla.
         if (cubo.x < 0) cubo.x = 0;
         if (cubo.x > 800 - 64) cubo.x = 800 - 64;
+        if (cubo.y < 0) cubo.y = 0;
+        if (cubo.y > 480 - 64) cubo.y = 480 - 64;
 
         // Cálculo del lanzamiento de la última Gota y lanzamiento de la siguiente.
         if (TimeUtils.nanoTime() - tiempoUltimaGota > 1000000000) {
@@ -123,6 +143,7 @@ public class WaterDrops extends ApplicationAdapter {
             if (gotaLluvia.overlaps(cubo)) {
                 sonidoGota.play();
                 iterador.remove();
+                contadorPuntos++;
             }
         }
 	}
