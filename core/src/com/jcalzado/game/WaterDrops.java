@@ -155,6 +155,7 @@ public class WaterDrops extends ApplicationAdapter {
         sonidoGota.dispose();
         musicaLluvia.dispose();
         batch.dispose();
+        textoPuntuacion.dispose();
     }
 
     private void lanzarGota() {
